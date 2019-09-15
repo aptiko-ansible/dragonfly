@@ -1,0 +1,83 @@
+---
+
+# Uninstall exim
+
+- name: Uninstall exim
+  apt: name=exim4-config state=absent
+
+- name: Remove exim configuration
+  file: path=/etc/exim4 state=absent
+
+
+# We compile unless we are in buster
+
+- name: Install build-essential (needed to compile dma)
+  apt: name=build-essential
+  when: ansible_distribution_release != "buster"
+
+- name: Install byacc (needed to compile dma)
+  apt: name=byacc
+  when: ansible_distribution_release != "buster"
+
+- name: Install libssl-dev (needed to compile dma)
+  apt: name=libssl-dev
+  when: ansible_distribution_release != "buster"
+
+- name: Install flex (needed to compile dma)
+  apt: name=flex
+  when: ansible_distribution_release != "buster"
+
+- name: Unpack dma source
+  unarchive:
+    src: https://github.com/corecode/dma/archive/v0.12.tar.gz
+    remote_src: yes
+    dest: /usr/src
+    creates: /usr/src/dma-0.12
+  when: ansible_distribution_release != "buster"
+  notify:
+  - Compile dma
+
+- name: Create /etc/dma
+  file: path=/etc/dma state=directory
+  when: ansible_distribution_release != "buster"
+
+- name: Install dma crontab
+  copy:
+    dest: /etc/cron.d/dma
+    content: |
+        # Flush the dma mail transfer agent's queue every five minutes.
+        #
+        */5 *   * * *   root    [ -x /usr/local/sbin/dma ] && /usr/local/sbin/dma -q1
+  when: ansible_distribution_release != "buster"
+
+
+# We install from apt when we are in buster
+
+- name: Install DragonFly Mail Agent
+  apt: name=dma
+  when: ansible_distribution_release == "buster"
+
+
+# The rest is the same for all distributions
+
+- name: Configure DragonFly Mail Agent
+  template: src=dma.conf dest=/etc/dma/dma.conf
+
+- name: Set catch-all mail alias
+  lineinfile:
+    dest: /etc/aliases
+    regexp: '^\*:'
+    line: "*: {{ admins }}"
+
+- name: Configure DMA authentication
+  template:
+    src: auth.conf
+    dest: /etc/dma/auth.conf
+    mode: 0640
+    group: mail
+
+- name: Install custom sendmail script
+  copy:
+    src: sendmail
+    dest: /usr/sbin/sendmail
+    mode: 0755

@@ -1,0 +1,21 @@
+---
+
+- name: Compile dma
+  make: chdir=/usr/src/dma-0.12
+  notify:
+  - Install dma
+
+- name: Install dma
+  make: chdir=/usr/src/dma-0.12 target=install
+  notify:
+  - Create mailq link to dma
+
+- name: Create mailq link to dma
+  make: chdir=/usr/src/dma-0.12 target=mailq-link
+  notify:
+  - Install dma spool dirs
+
+- name: Install dma spool dirs
+  make: chdir=/usr/src/dma-0.12 target=install-spool-dirs
+  notify:
+  - Install dma etc

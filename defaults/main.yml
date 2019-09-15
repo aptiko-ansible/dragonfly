@@ -1,0 +1,7 @@
+---
+dma_defer: False
+dma_masquerade: False
+dma_securetransfer: False
+dma_starttls: False
+dma_opportunistic_tls: False
+dma_insecure: False

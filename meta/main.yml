@@ -1,0 +1,13 @@
+---
+dependencies: []
+
+galaxy_info:
+  author: Antonis Christofides
+  description: Ansible role for installing and configuring DragonFly Mail Agent
+  license: GPLv3
+  platforms:
+  - name: Debian
+    versions:
+    - jessie
+    - stretch
+    - buster

@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""
+The DragonFly Mail Agent has option MASQUERADE to change the
+envelope-from. Some servers are picky and we also need to masquerade the
+"From:" header as well. This script is a wrapper around dma; it parses
+the message, changes the "From:" header to the MASQUERADE option from
+dma.conf, and it passes the result to dma.
+"""
+
+import subprocess
+import sys
+from email import message_from_string
+from email.utils import formataddr, parseaddr
+
+
+def get_message():
+    result = ""
+    for line in sys.stdin:
+        if line == ".\n":
+            break
+        result += line
+    return message_from_string(result)
+
+
+def get_processed_from(original_from):
+    new_address = get_masquerade()
+    if not new_address:
+        return original_from
+    original_name, original_address = parseaddr(original_from)
+    if original_address == new_address:
+        return original_from
+    new_name = "{} [{}]".format(original_name, original_address)
+    return formataddr((new_name, new_address))
+
+
+def get_masquerade():
+    with open("/etc/dma/dma.conf") as f:
+        for line in f:
+            if line.startswith("MASQUERADE"):
+                return line.split()[1]
+    return ""
+
+
+msg = get_message()
+original_from = msg["From"]
+if original_from:
+    new_from = get_processed_from(original_from)
+    msg.replace_header("From", new_from)
+args = sys.argv
+args[0] = "dma"
+subprocess.run(args, input=msg.as_string().encode("utf8"))
