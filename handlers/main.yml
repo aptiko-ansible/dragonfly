@@ -17,5 +17,3 @@
 
 - name: Install dma spool dirs
   make: chdir=/usr/src/dma-0.12 target=install-spool-dirs
-  notify:
-  - Install dma etc

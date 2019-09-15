@@ -41,11 +41,20 @@ def get_masquerade():
     return ""
 
 
+def execute_dma(msg):
+    args = sys.argv
+    input = msg.as_string().encode("utf8")
+    try:
+        args[0] = "/usr/local/sbin/dma"
+        subprocess.run(args, input=input)
+    except FileNotFoundError:
+        args[0] = "/usr/sbin/dma"
+        subprocess.run(args, input=input)
+
+
 msg = get_message()
 original_from = msg["From"]
 if original_from:
     new_from = get_processed_from(original_from)
     msg.replace_header("From", new_from)
-args = sys.argv
-args[0] = "dma"
-subprocess.run(args, input=msg.as_string().encode("utf8"))
+execute_dma(msg)

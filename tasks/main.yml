@@ -8,6 +8,11 @@
 - name: Remove exim configuration
   file: path=/etc/exim4 state=absent
 
+- name: Remove exim spool directory
+  file: path=/var/spool/exim4 state=absent
+
+- name: Remove exim log directory
+  file: path=/var/log/exim4 state=absent
 
 # We compile unless we are in buster
 
@@ -75,6 +80,9 @@
     dest: /etc/dma/auth.conf
     mode: 0640
     group: mail
+
+- name: Install Python 3 (required for custom sendmail script)
+  apt: name=python3
 
 - name: Install custom sendmail script
   copy:
