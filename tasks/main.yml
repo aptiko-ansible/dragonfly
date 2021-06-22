@@ -68,6 +68,14 @@
 - name: Configure DragonFly Mail Agent
   template: src=dma.conf dest=/etc/dma/dma.conf mode=0644
 
+- name: Check whether /etc/aliases exists
+  stat: path=/etc/aliases
+  register: etc_aliases
+
+- name: Create /etc/aliases if it doesn't exist
+  file: path=/etc/aliases state=touch
+  when: not etc_aliases.stat.exists
+
 - name: Set catch-all mail alias
   lineinfile:
     dest: /etc/aliases
