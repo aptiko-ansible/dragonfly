@@ -14,23 +14,16 @@
 - name: Remove exim log directory
   file: path=/var/log/exim4 state=absent
 
-# We compile unless we are in buster
+# We compile if in stretch
 
-- name: Install build-essential (needed to compile dma)
-  apt: name=build-essential
-  when: ansible_distribution_release != "buster"
-
-- name: Install byacc (needed to compile dma)
-  apt: name=byacc
-  when: ansible_distribution_release != "buster"
-
-- name: Install libssl-dev (needed to compile dma)
-  apt: name=libssl-dev
-  when: ansible_distribution_release != "buster"
-
-- name: Install flex (needed to compile dma)
-  apt: name=flex
-  when: ansible_distribution_release != "buster"
+- name: Install apt packages needed to compile dma
+  apt:
+    name:
+      - build-essential
+      - byacc
+      - libssl-dev
+      - flex
+  when: ansible_distribution_release == "stretch"
 
 - name: Unpack dma source
   unarchive:
@@ -38,13 +31,13 @@
     remote_src: yes
     dest: /usr/src
     creates: /usr/src/dma-0.12
-  when: ansible_distribution_release != "buster"
+  when: ansible_distribution_release == "stretch"
   notify:
   - Compile dma
 
 - name: Create /etc/dma
   file: path=/etc/dma state=directory
-  when: ansible_distribution_release != "buster"
+  when: ansible_distribution_release == "stretch"
 
 - name: Install dma crontab
   copy:
@@ -53,14 +46,14 @@
         # Flush the dma mail transfer agent's queue every five minutes.
         #
         */5 *   * * *   root    [ -x /usr/local/sbin/dma ] && /usr/local/sbin/dma -q1
-  when: ansible_distribution_release != "buster"
+  when: ansible_distribution_release == "stretch"
 
 
-# We install from apt when we are in buster
+# We install from apt unless we are in stretch
 
 - name: Install DragonFly Mail Agent
   apt: name=dma
-  when: ansible_distribution_release == "buster"
+  when: ansible_distribution_release != "stretch"
 
 
 # The rest is the same for all distributions
